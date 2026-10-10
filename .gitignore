@@ -1,0 +1,26 @@
+# 运行期数据（插件实际使用 data/plugin_data/，这里排除本地调试产物）
+data/
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+
+# 工具缓存
+.ruff_cache/
+.pytest_cache/
+.mypy_cache/
+
+# 打包与发布产物
+dist/
+*.zip
+
+# 本地配置与凭据
+config.json
+.env
+*.local.json
+
+# 编辑器 / 系统
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db

@@ -1,0 +1,58 @@
+{
+  "api_key": {
+    "description": "Mozambique Heirloom API Key",
+    "type": "string",
+    "default": "",
+    "secret": true,
+    "obvious_hint": true,
+    "hint": "必填。到 https://apexlegendsapi.com/auth 免费注册即可获得 API Key（同一把 Key 也可用于 api.mozambiquehe.re）。"
+  },
+  "api_base": {
+    "description": "API 地址",
+    "type": "string",
+    "default": "https://api.mozambiquehe.re",
+    "hint": "默认 https://api.mozambiquehe.re，也可填写 https://api.apexlegendsstatus.com（同一套接口）。"
+  },
+  "default_platform": {
+    "description": "默认查询平台",
+    "type": "string",
+    "default": "PC",
+    "options": ["PC", "PS4", "X1", "SWITCH"],
+    "hint": "用户未在指令中指定平台时使用。PC 平台请填写 EA/Origin 账号名。"
+  },
+  "enable_rank_image": {
+    "description": "发送段位图标",
+    "type": "bool",
+    "default": true,
+    "hint": "开启后会在战绩文本前附带一张段位徽章图片（部分平台可能不支持图片消息）。"
+  },
+  "max_trackers": {
+    "description": "数据卡展示条数",
+    "type": "int",
+    "default": 8,
+    "slider": {
+      "min": 3,
+      "max": 20,
+      "step": 1
+    },
+    "hint": "战绩文本里最多展示多少条数据卡（tracker）。"
+  },
+  "cache_ttl": {
+    "description": "缓存有效期（秒）",
+    "type": "int",
+    "default": 300,
+    "hint": "同一玩家在该时间内重复查询会直接返回本地缓存，避免触发 API 限流。设为 0 表示不缓存。"
+  },
+  "request_timeout": {
+    "description": "请求超时（秒）",
+    "type": "int",
+    "default": 15,
+    "hint": "单次请求 API 的最长等待时间。"
+  },
+  "show_cache_hint": {
+    "description": "显示缓存提示",
+    "type": "bool",
+    "default": true,
+    "hint": "命中本地缓存时，在战绩末尾追加一行提示。"
+  }
+}

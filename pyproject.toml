@@ -1,0 +1,41 @@
+[project]
+name = "astrbot_plugin_apex_stats"
+version = "1.0.0"
+description = "在对话中用指令按 EA ID 查询 Apex Legends 玩家战绩"
+requires-python = ">=3.12"
+dependencies = ["httpx>=0.24.0"]
+
+[tool.ruff]
+line-length = 120
+target-version = "py312"
+exclude = ["__pycache__", "data"]
+
+[tool.ruff.lint]
+# 规则集对应 AstrBot 官方开发原则：异步 HTTP（禁 requests）、错误处理、格式统一。
+select = [
+    "E",   # pycodestyle errors
+    "F",   # pyflakes
+    "W",   # pycodestyle warnings
+    "I",   # isort
+    "UP",  # pyupgrade
+    "B",   # flake8-bugbear
+    "BLE", # flake8-blind-except（错误处理：禁止裸 except）
+    "C4",  # flake8-comprehensions
+    "SIM", # flake8-simplify
+    "RUF", # ruff 自有规则
+    "S",   # flake8-bandit（安全检查）
+    "T20", # flake8-print（正式代码不应直接 print）
+]
+ignore = [
+    "RUF001", # 中文全角标点（。，：（））在本插件中是有意使用，非拼写歧义
+    "RUF002",
+    "RUF003",
+    "RUF100", # 保留 noqa 作为「此处有意为之」的说明注释
+    "S101",   # 测试脚本使用 assert 是预期行为
+    "S310",   # urllib 兜底实现只接受 https URL（见 api_base 校验）
+    "S311",   # 不使用随机数做安全用途
+]
+
+[tool.ruff.lint.per-file-ignores]
+# 自测脚本允许 print / 调试断言 / 延迟导入
+"dev_*.py" = ["T20", "S101", "E402", "TRY002", "RUF059"]

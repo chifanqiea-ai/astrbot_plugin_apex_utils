@@ -1,0 +1,45 @@
+name: astrbot_plugin_apex_stats
+display_name: Apex 战绩查询
+short_desc: 发送 /apex EA_ID 即可查询 Apex Legends 玩家的等级、段位与击杀数据。
+desc: |-
+  在聊天中用指令按 EA ID 查询 Apex Legends 玩家战绩。
+
+  功能：
+  - 指令查询：`/apex <EA ID> [平台]`，支持 PC / PlayStation / Xbox / Switch
+  - 展示内容：等级与威望、段位（含段位徽章图片）、排位分、生涯总击杀/伤害/胜场/胜率、数据卡、当前传奇、常用传奇
+  - 账号绑定：`/apex bind <EA ID>` 后直接发送 `/apex` 查询自己
+  - 结果缓存：默认 5 分钟，显著降低 API 调用与限流风险；数据源故障时自动回退上次结果
+  - 中文映射：段位、传奇、数据卡名称全部本地化为中文
+
+  使用前需要在插件配置中填写 Mozambique Heirloom API Key（免费申请，见 README）。
+
+  数据来源为第三方非官方接口，与 EA / Respawn 无关。
+version: 1.0.0
+author: your-github-name
+repo: https://github.com/your-github-name/astrbot_plugin_apex_stats
+astrbot_version: ">=4.0.0"
+support_platforms:
+  - aiocqhttp
+  - qq_official
+  - qq_official_webhook
+  - telegram
+  - discord
+  - slack
+  - lark
+  - dingtalk
+  - kook
+  - vocechat
+  - misskey
+  - line
+  - matrix
+  - mattermost
+  - wecom
+  - wecom_ai_bot
+  - weixin_official_account
+  - weixin_oc
+social_link: https://github.com/your-github-name
+tags:
+  - 游戏
+  - 查询
+  - apex
+  - Apex英雄
