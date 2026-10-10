@@ -83,8 +83,6 @@ astrbot_plugin_apex_stats/
 ├── _conf_schema.json       # 插件配置 Schema（WebUI 可视化配置）
 ├── metadata.yaml           # 插件元数据
 ├── requirements.txt        # 依赖声明（可选安装）
-├── pyproject.toml          # ruff 格式化 / lint 配置
-├── PUBLISHING.md           # 发布手册
 ├── README.md
 └── dev_*.py                # 开发自测脚本（可删除，不影响运行）
 ```

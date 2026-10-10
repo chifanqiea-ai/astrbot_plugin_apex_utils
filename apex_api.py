@@ -1,7 +1,7 @@
 """Mozambique Heirloom API（Apex Legends Status）异步客户端。
 
 负责：
-* 调用 ``/bridge`` 拉取玩家战绩，调用 ``/nametouid`` 把 EA ID 解析成 UID；
+* 调用 ``/bridge.php`` 拉取玩家战绩，调用 ``/nametouid.php`` 把 EA ID 解析成 UID；
 * 内存 + 磁盘两级缓存，降低 API 调用次数（免费额度约 2 次/秒）；
 * 把各类异常统一转换为带中文文案的 :class:`ApexApiError`。
 
@@ -315,34 +315,51 @@ def _extract_top_legends(legends: dict[str, Any], limit: int = 3) -> list[dict[s
     return [entry for _, entry in scored[: max(0, limit)]]
 
 
+#: ``_parse_uid`` 显式栈中表示「短路返回 UID」的哨兵。
+#: 数据来自 json.loads，只会出现 dict/list/标量，不会与真实数据混淆。
+_UID_SENTINEL = object()
+
+
 def _parse_uid(payload: Any) -> str:
     """从 ``/nametouid`` 响应中取出 UID。
 
     该端点的响应形态在不同文档/版本之间不一致（``{"uid": ...}``、
     ``{"result": ...}``、``[{"uid": ...}]``、``{"data": {...}}``），
     这里统一做防御式解析。
+
+    实现上用显式栈做深度优先遍历（而非递归）：若数据源返回的 JSON
+    被构造为极深嵌套，递归写法会触发 RecursionError；显式栈不占用
+    调用栈深度，任何深度的数据都能安全处理。
     """
-    if isinstance(payload, list):
-        for item in payload:
-            uid = _parse_uid(item)
-            if uid:
-                return uid
-        return ""
-    if not isinstance(payload, dict):
-        return ""
-    for key in ("uid", "result", "value", "id"):
-        value = payload.get(key)
-        if isinstance(value, dict):
-            nested = _parse_uid(value)
-            if nested:
-                return nested
-        elif value is not None and str(value).strip():
-            return str(value).strip()
-    for key in ("data", "player", "players", "items"):
-        if key in payload:
-            nested = _parse_uid(payload[key])
-            if nested:
-                return nested
+    stack: list[Any] = [payload]
+    while stack:
+        current = stack.pop()
+        # 哨兵项：表示该位置应短路返回 UID（对应递归版的 return）
+        if isinstance(current, tuple) and len(current) == 2 and current[0] is _UID_SENTINEL:
+            return current[1]
+        if isinstance(current, list):
+            stack.extend(reversed(current))  # 反向入栈，保持从左到右逐个尝试
+            continue
+        if not isinstance(current, dict):
+            continue
+
+        # 展开当前 dict 的候选序列，顺序与递归版一致：
+        # 先查 uid/result/value/id 四个键；值是 dict 时优先深入，
+        # 值是标量且非空时短路返回；四个键都没有结果再深入
+        # data/player/players/items 四个键。
+        deferred: list[Any] = []
+        for key in ("uid", "result", "value", "id"):
+            value = current.get(key)
+            if isinstance(value, dict):
+                deferred.append(value)  # 深入；解析为空时继续后续候选
+            elif value is not None and str(value).strip():
+                deferred.append((_UID_SENTINEL, str(value).strip()))
+                break  # 短路：递归版此处直接 return
+        if not deferred or not (isinstance(deferred[-1], tuple) and deferred[-1][0] is _UID_SENTINEL):
+            for key in ("data", "player", "players", "items"):
+                if key in current:
+                    deferred.append(current[key])
+        stack.extend(reversed(deferred))
     return ""
 
 
@@ -424,8 +441,8 @@ def format_player_text(
     rp = overall.get("rp") or 0
     if rp:
         rank_text += f"｜{rp:,} RP"
-    ladder = overall.get("ladder")
-    if ladder:
+    ladder = to_int(overall.get("ladder"))
+    if ladder > 0:  # API 用 -1 表示未上榜，此时不显示名次
         rank_text += f"｜平台第 {ladder} 名"
     lines.append(f"等级：{level_text}")
     lines.append(f"段位：{rank_text}")
@@ -683,8 +700,9 @@ class ApexApiClient:
         """发起 GET 请求并处理错误码，返回解析后的 JSON。"""
         query = {k: v for k, v in params.items() if v is not None}
         query["auth"] = self.api_key
-        url = f"{self.base_url}/{endpoint.lstrip('/')}"
-        # 该站由 Apache 做内容协商：缺少 Accept 头会被拦成 406，必须显式声明 JSON。
+        url = f"{self.base_url}/{endpoint.lstrip('/')}.php"
+        # 该站由 Apache 做内容协商：请求不带 .php 后缀的路径会被拦成 406，
+        # 直接请求真实的 PHP 文件地址即可绕过（实测两个官方入口均可用）。
         headers = {
             "User-Agent": "AstrBot-ApexStats/1.0",
             "Accept": "application/json",

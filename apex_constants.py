@@ -5,6 +5,7 @@
 
 from __future__ import annotations
 
+import re
 from typing import Any
 
 # ---------------------------------------------------------------------------
@@ -194,6 +195,10 @@ TRACKER_NAMES: dict[str, str] = {
     "damage_per_match": "场均伤害",
     "kills_per_match": "场均击杀",
     "season_ranked_kills": "赛季排位击杀",
+    "shields_charged": "护盾充能",
+    "ordnance_destroyed": "摧毁投掷物",
+    "silenced_enemies": "沉默敌人",
+    "scans": "扫描次数",
 }
 
 #: 总览里优先展示的数据卡（按顺序），未命中的会按原始顺序补齐。
@@ -288,6 +293,10 @@ def translate_legend(legend_name: Any) -> str:
     return LEGEND_NAMES.get(text, text)
 
 
+#: 动态赛季数据卡，如 ``wins_season_2`` -> 胜场（第2赛季）
+_SEASON_TRACKER_RE = re.compile(r"^(?P<base>.+)_season_(?P<season>\d+)$")
+
+
 def translate_tracker(tracker_key: Any) -> str:
     """把 API 返回的 tracker key 翻译成中文，未知时做一次可读化处理。"""
     if not tracker_key:
@@ -298,5 +307,10 @@ def translate_tracker(tracker_key: Any) -> str:
         return TRACKER_NAMES[lowered]
     if text in TRACKER_NAMES:
         return TRACKER_NAMES[text]
+    match = _SEASON_TRACKER_RE.match(lowered)
+    if match:
+        base_label = TRACKER_NAMES.get(match.group("base"))
+        if base_label:
+            return f"{base_label}（第{match.group('season')}赛季）"
     readable = text.replace("_", " ").replace("-", " ").strip()
     return readable.title() if readable else text
